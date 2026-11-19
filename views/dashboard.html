@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Особистий кабінет — Lion Sport Club</title>
+    <link rel="stylesheet" href="/cyber-platform/public/css/dashboard_style.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h1>ОСОБИСТИЙ КАБІНЕТ <span class="badge" style="background: var(--dark3); color: var(--text); border: 1px solid var(--dark4);">КЛІЄНТ</span></h1>
+
+    <div id="loading" style="color: var(--lion); font-weight: 500;">Завантаження даних...</div>
+
+    <div id="profile" style="display:none;">
+        
+        <div style="background: var(--dark3); padding: 24px; border-radius: 8px; border: 1px solid var(--dark4); margin-bottom: 32px;">
+            <h3 style="margin-bottom: 16px; font-size: 20px; color: var(--lion);">ТВОЇ ДАНІ</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <p><strong>Логін:</strong> <br><span id="p-username" style="color: var(--muted);"></span></p>
+                <p><strong>Email:</strong> <br><span id="p-email" style="color: var(--muted);"></span></p>
+                <p><strong>Повне ім'я:</strong> <br><span id="p-fullname" style="color: var(--muted);"></span></p>
+                <p><strong>Абонемент:</strong> <br><span id="p-subscription" class="badge" style="margin-top: 4px;"></span></p>
+                <p><strong>Тренер:</strong> <br><span id="p-trainer" style="color: var(--muted);"></span></p>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 16px; font-size: 20px;">НАЛАШТУВАННЯ ПРОФІЛЮ</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px;">
+            <div class="field" style="grid-column: span 2;">
+                <label>Повне ім'я</label>
+                <input type="text" id="edit-fullname" placeholder="Як до тебе звертатися?" />
+            </div>
+
+            <div class="field">
+                <label>Зріст (см)</label>
+                <input type="number" id="edit-height" placeholder="Наприклад: 187" />
+            </div>
+
+            <div class="field">
+                <label>Вага (кг)</label>
+                <input type="number" id="edit-weight" placeholder="Наприклад: 76" />
+            </div>
+        </div>
+
+        <div style="margin-top: 16px; display: flex; align-items: center; gap: 16px;">
+            <button class="btn-save" id="saveBtn" onclick="saveProfile()">Зберегти зміни</button>
+            <span id="save-msg" style="color: #4ade80; font-size: 13px; font-weight: 600; display: none;">✅ Збережено!</span>
+        </div>
+    </div>
+
+    <div id="error" style="display:none; color:#e74c3c; margin-top:20px; font-weight: 500;">
+        Сесія закінчилась. <a href="/cyber-platform/login" style="color: var(--lion);">Увійдіть знову</a>
+    </div>
+
+    <div class="bottom-actions">
+        <button class="btn-logout" onclick="doLogout()">Вийти з акаунта</button>
+        <button class="btn-home" onclick="window.location.href='/cyber-platform/'">На головну сторінку</button>
+    </div>
+</div>
+
+<script>
+async function loadProfile() {
+    try {
+        const response = await fetch('/cyber-platform/api/user');
+        const result = await response.json();
+
+        document.getElementById('loading').style.display = 'none';
+
+        if (result.success) {
+            const u = result.user;
+            document.getElementById('p-username').textContent     = u.username || '—';
+            document.getElementById('p-email').textContent        = u.email || '—';
+            document.getElementById('p-fullname').textContent     = u.full_name || '—';
+            document.getElementById('p-subscription').textContent = u.subscription || 'Немає';
+            document.getElementById('p-trainer').textContent = u.assigned_trainer_name || 'Не призначений';
+
+            document.getElementById('edit-fullname').value = u.full_name || '';
+            document.getElementById('edit-height').value   = u.height || '';
+            document.getElementById('edit-weight').value   = u.weight || '';
+
+            document.getElementById('profile').style.display = 'block';
+        } else {
+            document.getElementById('error').style.display = 'block';
+        }
+    } catch (e) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+    }
+}
+
+async function saveProfile() {
+    const btn = document.getElementById('saveBtn');
+    const msg = document.getElementById('save-msg');
+    
+    btn.textContent = 'Збереження...';
+    btn.style.opacity = '0.7';
+    msg.style.display = 'none';
+
+    try {
+        const response = await fetch('/cyber-platform/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                full_name: document.getElementById('edit-fullname').value,
+                height:    document.getElementById('edit-height').value,
+                weight:    document.getElementById('edit-weight').value
+            })
+        });
+        const result = await response.json();
+        
+        btn.textContent = 'Зберегти зміни';
+        btn.style.opacity = '1';
+
+        if (result.success) {
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+            loadProfile(); // Оновлюємо візуальні дані після збереження
+        }
+    } catch (e) {
+        btn.textContent = 'Зберегти зміни';
+        btn.style.opacity = '1';
+        alert('Помилка з\'єднання з сервером');
+    }
+}
+
+async function doLogout() {
+    await fetch('/cyber-platform/api/logout', { method: 'POST' });
+    window.location.href = '/cyber-platform/login';
+}
+
+loadProfile();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін — Lion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+        :root {
+            --lion:    #219150;
+            --lion-dk: rgb(58, 175, 4);
+            --danger:  #e53935;
+            --warning: #ef6c00;
+            --dark:    #0d0d0d;
+            --dark2:   #141414;
+            --dark3:   #1e1e1e;
+            --dark4:   #2a2a2a;
+            --text:    #f0f0f0;
+            --muted:   #888;
+            --radius:  10px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            padding: 40px;
+            margin: 0;
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            letter-spacing: 0.04em;
+            color: var(--text);
+            margin-bottom: 30px;
+        }
+
+        #loading {
+            font-size: 16px;
+            color: var(--muted);
+        }
+
+        /* ── ВКЛАДКИ ── */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: 1.5px solid var(--dark4);
+            background: var(--dark2);
+            color: var(--muted);
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--lion);
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: var(--lion);
+            color: var(--dark);
+            border-color: var(--lion);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeUp 0.4s ease; }
+
+        /* ── ТАБЛИЦІ ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: var(--dark2);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid var(--dark4);
+        }
+
+        th {
+            background: var(--dark3);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--dark3); }
+
+        /* ── ЕЛЕМЕНТИ ФОРМ ── */
+        select {
+            padding: 10px 12px;
+            background: var(--dark);
+            border: 1.5px solid var(--dark4);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--lion);
+            box-shadow: 0 0 0 3px rgba(33, 145, 80, 0.15);
+        }
+
+        /* ── КНОПКИ ── */
+        button {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        td button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-delete { background: var(--danger); color: #fff; }
+        .btn-delete:hover { background: #ff4c4c; box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2); }
+
+        .btn-save { background: var(--lion); color: var(--dark); }
+        .btn-save:hover { background: #28a745; box-shadow: 0 4px 12px rgba(33, 145, 80, 0.3); }
+
+        .btn-remove { background: var(--warning); color: #fff; }
+        .btn-remove:hover { background: #ff8a22; box-shadow: 0 4px 12px rgba(239, 108, 0, 0.2); }
+
+        /* ── НИЖНЯ ПАНЕЛЬ УПРАВЛІННЯ ── */
+        .bottom-controls {
+            display: flex;
+            gap: 16px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--dark4);
+        }
+
+        .bottom-controls button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .bottom-controls .btn-home {
+            background: transparent;
+            border: 1.5px solid var(--dark4);
+            color: var(--muted);
+        }
+        .bottom-controls .btn-home:hover {
+            border-color: var(--lion);
+            color: var(--text);
+        }
+
+        /* ── АНІМАЦІЇ ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Адмін панель</h1>
+<div id="loading">Завантаження...</div>
+
+<div id="content" style="display:none;">
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('users', this)">👥 Користувачі</button>
+        <button class="tab-btn" onclick="showTab('trainers', this)">🏋️ Тренер → Клієнт</button>
+        <button class="tab-btn" onclick="showTab('contacts', this)">📩 Контакти</button>
+        <button class="tab-btn" onclick="showTab('purchases', this)">🛒 Покупки</button>
+        <button class="tab-btn" onclick="showTab('subscriptions', this)">🧧 Абонементи</button>
+    </div>
+
+    <div id="tab-users" class="tab-content active">
+        <table>
+            <thead><tr>
+                <th>ID</th><th>Логін</th><th>Ім'я</th><th>Email</th>
+                <th>Роль</th><th>Абонемент</th><th>Дії</th>
+            </tr></thead>
+            <tbody id="users-body"></tbody>
+        </table>
+    </div>
+
+    <div id="tab-trainers" class="tab-content">
+        <p style="margin-bottom:12px; color: var(--muted);">Оберіть тренера для кожного клієнта. Натисніть "Зберегти" після вибору.</p>
+        <table>
+            <thead><tr>
+                <th>ID</th><th>Клієнт</th><th>Email</th><th>Абонемент</th>
+                <th>Поточний тренер</th><th>Призначити тренера</th><th>Дія</th>
+            </tr></thead>
+            <tbody id="trainers-body"></tbody>
+        </table>
+    </div>
+
+    <div id="tab-contacts" class="tab-content">
+        <table>
+            <thead><tr>
+                <th>ID</th><th>Ім'я</th><th>Телефон</th><th>Email</th><th>Тема</th><th>Повідомлення</th><th>Дата</th>
+            </tr></thead>
+            <tbody id="contacts-body"></tbody>
+        </table>
+    </div>
+
+    <div id="tab-purchases" class="tab-content">
+        <table>
+            <thead><tr>
+                <th>ID</th><th>Товар</th><th>Покупець</th><th>Телефон</th><th>Доставка</th><th>К-сть</th><th>Сума</th>
+            </tr></thead>
+            <tbody id="purchases-body"></tbody>
+        </table>
+    </div>
+
+    <div id="tab-subscriptions" class="tab-content">
+        <table>
+            <thead><tr>
+                <th>ID</th><th>Абонемент</th><th>Ім'я</th><th>Email</th><th>Телефон</th><th>Дата</th>
+            </tr></thead>
+            <tbody id="subscriptions-body"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<div id="error" style="display:none; color:var(--danger); margin:20px 0;">
+    Доступ заборонено. <a href="/cyber-platform/login" style="color: var(--lion);">Увійти</a>
+</div>
+
+<div class="bottom-controls">
+    <button onclick="doLogout()" class="btn-delete">Вийти з панелі</button>
+    <button onclick="window.location.href='/cyber-platform/'" class="btn-home">На головну сторінку</button>
+</div>
+
+<script>
+let allTrainers = [];
+
+function showTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    if (btn) btn.classList.add('active');
+}
+
+async function loadAll() {
+    try {
+        // 1. Користувачі
+        const r1 = await fetch('/cyber-platform/api/users');
+        const d1 = await r1.json();
+        document.getElementById('loading').style.display = 'none';
+
+        if (!d1.success) { document.getElementById('error').style.display = 'block'; return; }
+        document.getElementById('content').style.display = 'block';
+
+        const tbody1 = document.getElementById('users-body');
+        d1.users.forEach(u => {
+            tbody1.innerHTML += `
+                <tr>
+                    <td>${u.id}</td><td>${u.username}</td><td>${u.full_name||'—'}</td>
+                    <td>${u.email||'—'}</td>
+                    <td><select onchange="updateUserField(${u.id}, 'role', this.value)">
+                        ${['client','trainer','trainer_edit','admin'].map(r =>
+                            `<option ${u.role===r?'selected':''}>${r}</option>`).join('')}
+                    </select></td>
+                    <td><select onchange="updateUserField(${u.id}, 'subscription', this.value)">
+                        ${['None','Sport','Sport+Pool','Full','Trainer'].map(s =>
+                            `<option ${u.subscription===s?'selected':''}>${s}</option>`).join('')}
+                    </select></td>
+                    <td><button class="btn-delete" onclick="deleteUser(${u.id})">Видалити</button></td>
+                </tr>`;
+        });
+
+        // 2. Тренери
+        const r2 = await fetch('/cyber-platform/api/users/trainers');
+        const d2 = await r2.json();
+        if (d2.success) allTrainers = d2.trainers;
+
+        // 3. Клієнти з тренерами
+        const r3 = await fetch('/cyber-platform/api/users/clients-with-trainer');
+        const d3 = await r3.json();
+        if (d3.success) {
+            const tbody3 = document.getElementById('trainers-body');
+            d3.clients.forEach(c => {
+                const trainerOptions = `<option value="0">— Без тренера —</option>` +
+                    allTrainers.map(t =>
+                        `<option value="${t.id}" ${c.trainer_id==t.id?'selected':''}>${t.full_name||t.username}</option>`
+                    ).join('');
+                tbody3.innerHTML += `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.full_name||c.username}</td>
+                        <td>${c.email||'—'}</td>
+                        <td>${c.subscription||'—'}</td>
+                        <td>${c.trainer_name || '— Не призначений —'}</td>
+                        <td><select id="trainer-select-${c.id}">${trainerOptions}</select></td>
+                        <td>
+                            <button class="btn-save" onclick="assignTrainer(${c.id})">Зберегти</button>
+                            ${c.trainer_id ? `<button class="btn-remove" onclick="removeTrainer(${c.id})" style="margin-left:4px">Відкріпити</button>` : ''}
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // 4. Контакти
+        const r4 = await fetch('/cyber-platform/api/contact/all');
+        const d4 = await r4.json();
+        if (d4.success) {
+            const tbody4 = document.getElementById('contacts-body');
+            tbody4.innerHTML = d4.requests.length ? '' : '<tr><td colspan="7">Запитів немає</td></tr>';
+            d4.requests.forEach(c => {
+                tbody4.innerHTML += `<tr>
+                    <td>${c.id}</td><td>${c.name}</td><td>${c.telephone}</td>
+                    <td>${c.email}</td><td>${c.subject||'—'}</td><td>${c.message}</td>
+                    <td>${c.created_at||'—'}</td></tr>`;
+            });
+        }
+
+        // 5. Покупки магазину
+        const r5 = await fetch('/cyber-platform/api/shop/purchases');
+        const d5 = await r5.json();
+        if (d5.success) {
+            const tbody5 = document.getElementById('purchases-body');
+            tbody5.innerHTML = d5.purchases.length ? '' : '<tr><td colspan="7">Покупок немає</td></tr>';
+            d5.purchases.forEach(p => {
+                tbody5.innerHTML += `<tr>
+                    <td>${p.id}</td><td>${p.product_name}</td><td>${p.name}</td>
+                    <td>${p.phone}</td><td>${p.delivery}</td>
+                    <td>${p.quantity}</td><td>${p.total_price} ₴</td></tr>`;
+            });
+        }
+
+        // 6. Абонементи
+        const r6 = await fetch('/cyber-platform/api/subscription/all');
+        const d6 = await r6.json();
+        if (d6.success) {
+            const tbody6 = document.getElementById('subscriptions-body');
+            tbody6.innerHTML = d6.subscriptions.length ? '' : '<tr><td colspan="6">Запитів немає</td></tr>';
+            d6.subscriptions.forEach(s => {
+                tbody6.innerHTML += `<tr>
+                    <td>${s.id}</td><td>${s.abonement_type||s.name}</td>
+                    <td>${s.name}</td><td>${s.email||'—'}</td>
+                    <td>${s.phone||s.card}</td><td>${s.purchase_date||'—'}</td></tr>`;
+            });
+        }
+    } catch (e) {
+        document.getElementById('loading').textContent = 'Помилка завантаження даних з API.';
+        console.error(e);
+    }
+}
+
+async function assignTrainer(clientId) {
+    const trainerId = parseInt(document.getElementById('trainer-select-' + clientId).value);
+    const res = await fetch('/cyber-platform/api/users/assign-trainer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId, trainer_id: trainerId })
+    });
+    const result = await res.json();
+    alert(result.success ? '✅ ' + result.message : '❌ ' + result.message);
+    if (result.success) location.reload();
+}
+
+async function removeTrainer(clientId) {
+    const res = await fetch('/cyber-platform/api/users/assign-trainer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId, trainer_id: 0 })
+    });
+    const result = await res.json();
+    if (result.success) location.reload();
+}
+
+async function updateUserField(id, field, value) {
+    const res = await fetch('/cyber-platform/api/users/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, [field]: value,
+            full_name: '', email: '', role: field==='role'?value:'client',
+            subscription: field==='subscription'?value:'None' })
+    });
+}
+
+async function deleteUser(id) {
+    if (!confirm('Видалити користувача?')) return;
+    const res = await fetch('/cyber-platform/api/users/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+    });
+    const result = await res.json();
+    if (result.success) location.reload();
+    else alert('❌ ' + result.message);
+}
+
+async function doLogout() {
+    await fetch('/cyber-platform/api/logout', { method: 'POST' });
+    window.location.href = '/cyber-platform/login';
+}
+
+loadAll();
+</script>
+</body>
+</html>

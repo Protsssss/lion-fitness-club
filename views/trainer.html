@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренер — Lion</title>
+    <link rel="stylesheet" href="/cyber-platform/public/css/dashboard_style.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h1>КАБІНЕТ ТРЕНЕРА <span class="badge">PRO</span></h1>
+    <div id="loading" style="color: var(--lion); font-weight: 500;">Завантаження...</div>
+
+    <div id="content" style="display:none;">
+        <div id="trainer-profile" style="margin-bottom: 24px; color: var(--muted); font-size: 14px;"></div>
+
+        <h2 style="margin-bottom: 12px; font-size: 24px;">Мої клієнти</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ім'я</th><th>Email</th><th>Зріст</th><th>Вага</th><th>Абонемент</th>
+                </tr>
+            </thead>
+            <tbody id="clients-body"></tbody>
+        </table>
+    </div>
+
+    <div id="error" style="display:none; color:#e74c3c; margin-top:20px; font-weight: 500;">
+        Доступ заборонено. <a href="/cyber-platform/login" style="color: var(--lion);">Увійти</a>
+    </div>
+    
+    <div class="bottom-actions">
+        <button class="btn-logout" onclick="doLogout()">Вийти з акаунта</button>
+        <button class="btn-home" onclick="window.location.href='/cyber-platform/'">На головну сторінку</button>
+    </div>
+</div>
+
+<script>
+async function loadData() {
+    const res = await fetch('/cyber-platform/api/trainer/clients');
+    const result = await res.json();
+    document.getElementById('loading').style.display = 'none';
+
+    if (!result.success) {
+        document.getElementById('error').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('content').style.display = 'block';
+
+    const t = result.trainer;
+    document.getElementById('trainer-profile').innerHTML = `
+        <p><strong>Ім'я:</strong> ${t.full_name || '—'} &nbsp;|&nbsp; 
+           <strong>Email:</strong> ${t.email || '—'} &nbsp;|&nbsp; 
+           <strong>Тип:</strong> <span class="badge" style="background:var(--dark3); color:var(--text); border: 1px solid var(--dark4);">${t.trainer_type || '—'}</span></p>`;
+
+    const tbody = document.getElementById('clients-body');
+    if (result.clients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--muted);">Клієнтів поки немає</td></tr>';
+        return;
+    }
+    result.clients.forEach(c => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${c.full_name || '—'}</td>
+                <td>${c.email || '—'}</td>
+                <td>${c.height || '—'}</td>
+                <td>${c.weight || '—'}</td>
+                <td>${c.subscription || '—'}</td>
+            </tr>`;
+    });
+}
+
+async function doLogout() {
+    await fetch('/cyber-platform/api/logout', { method: 'POST' });
+    window.location.href = '/cyber-platform/login';
+}
+
+loadData();
+</script>
+
+</body>
+</html>
